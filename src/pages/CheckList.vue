@@ -168,7 +168,7 @@ export default {
       SessionStorage.set('listRow',rowId);
       SessionStorage.set('checklistId',this.installerChecklist[rowId].id);
       SessionStorage.set('documentName',this.installerChecklist[rowId].checkName);
-      SessionStorage.set('.checkType',this.installerChecklist[rowId].type);
+      SessionStorage.set('checkType',this.installerChecklist[rowId].type);
       SessionStorage.set('hasExpiry',this.installerChecklist[rowId].hasExpiry);
       this.$router.push('/app/Upload');
     },

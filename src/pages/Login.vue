@@ -23,11 +23,11 @@
     <div class="text-blue q-pt-md" clickable @click="forgotPW" style="cursor:pointer">Forgot your password?</div>
 
     <q-inner-loading
-      :showing="showWait"
-      :label="waitMessage"
-      label-class="text-orange"
-      label-style="font-size: 1.1em"
-    />
+        :showing="showWait"
+        label="Please wait..."
+        label-class="text-teal"
+        label-style="font-size: 1.1em"
+      />
 
     <q-dialog v-model="userMessage" persistent>
       <q-card>
@@ -175,8 +175,10 @@ export default {
       var resultCode = 0;
       const xhttp = new XMLHttpRequest();
       xhttp.onload = () => {
+        console.log("Send email result");
+        console.log(xhttp.response);
         var resultObj = JSON.parse(xhttp.response);
-        //console.log(resultObj);
+        console.log(resultObj);
         resultCode = parseInt(resultObj.resultCode);
         this.showWait = false;
         //    Show error/message results
@@ -186,7 +188,6 @@ export default {
           this.resultTitle = resultObj.resultTitle;
           this.userMessage = true;
         }
-
       }
       xhttp.open('GET', 'Services/SendResetEmail.aspx', true);
       xhttp.setRequestHeader('UserEmail', this.userEmail);
