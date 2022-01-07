@@ -1,5 +1,5 @@
 import AuthLayout from 'layouts/Auth';
-import SplashPage from 'pages/Splash';
+// import SplashPage from 'pages/Splash';
 import LoginPage from 'pages/Login';
 import ResetPWPage from 'pages/ResetPW';
 import MainLayout from 'layouts/MainLayout';
@@ -15,7 +15,7 @@ const routes = [
     path: '/',
     component: AuthLayout,
     children: [
-      { path: '', component: SplashPage },
+      { path: '', component: LoginPage },
       { path: 'Login', component: LoginPage },
       { path: 'ResetPW', component: ResetPWPage }
     ]
