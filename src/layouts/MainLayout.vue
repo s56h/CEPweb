@@ -15,6 +15,10 @@
       </q-toolbar>
     </q-header>
 
+    <q-page-container>   <!--   Page container   -->
+      <router-view />
+    </q-page-container>
+
     <q-footer>   <!--   Footer   -->
       <div class="bg-white q-pa-xs row">
         <span class="col-7 q-pt-sm">
@@ -60,15 +64,11 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Yes" color="warning"  to="/Login" />
+          <q-btn flat label="Yes" color="warning"  to="/Login" />   <!-- ############## clear routes ################### -->
           <q-btn flat label="No" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <q-page-container>
-      <router-view />
-    </q-page-container>
   </q-layout>
 </template>
 
@@ -86,6 +86,16 @@ const menuList = [
     icon: 'mdi-format-list-checks',
     link: '/app/CheckList'
   },
+/*  {
+    title: 'Statements',
+    icon: 'mdi-currency-usd',
+    link: '/app/Statements'
+  },
+  {
+    title: 'My signature',
+    icon: 'mdi-signature-freehand',
+    link: '/app/Signature'
+  }, */
   {
     title: 'Contact CCC',
     icon: 'mdi-account-box-outline',

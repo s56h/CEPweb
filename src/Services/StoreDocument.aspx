@@ -77,7 +77,7 @@
 		Dim strInstallerCompanyId As String
 		strInstallerCompanyId = Request.Cookies.Item("InstallerCompanyId").Value.ToString()
 		Dim strInstallerName As String
-		strInstallerName = Request.Cookies.Item("InstallerName").Value.ToString()
+		strInstallerName = Request.Cookies.Item("InstallerName").Value.ToString().Replace("'","''")
 		Dim strCheckName As String
 		strCheckName = Request.Cookies.Item("CheckName").Value.ToString()
 		Dim strExpiryDate As String
@@ -132,7 +132,7 @@
 		Dim strFolderPath As String
 		strFolderPath = strInstallerFolder & "\" & strFolderPending & "\"
 		Dim strFileFolderPath As String							'	Where the file will end up after mirroring
-		strFileFolderPath = strFolderPath & strFileName
+		strFileFolderPath = strFolderPath & strFileName.Replace("'","''")
 		Dim strWebFileFolderPath As String						'	Where the file will be mirrored from
 		strWebFileFolderPath = strWebPath & strFileName
 		oFilePost.SaveAs(strWebFileFolderPath)

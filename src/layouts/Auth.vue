@@ -12,6 +12,12 @@
       </q-toolbar>
     </q-header>
 
+    <q-footer>   <!--   Footer   -->
+      <div>
+        <span class="float-right text-caption text-orange-4">v{{appVersion}}</span>
+      </div>
+    </q-footer>
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -20,8 +26,15 @@
 </template>
 
 <script>
+import { version } from '../../package';
 
 export default {
+  setup () {
+
+    return {
+      appVersion: version,
+    }
+  }
 
 }
 

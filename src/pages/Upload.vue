@@ -37,9 +37,11 @@
             url="Services/StoreDocument.aspx"
             class="full-width"
             style="max-width: 500px"
+            max-file-size="10240000"
             @added="fileAdded" 
             @removed="fileRemoved"
-            @finish="showUploadResult" 
+            @finish="showUploadResult"
+            @rejected="showTooLarge" 
             color="orange"
             hide-upload-btn
             text-color="grey-9"
@@ -207,7 +209,16 @@ export default {
       //    invoke upload method on q-uploader
       //
       this.$refs.qUploaderRef.upload();
+    },
 
+    showTooLarge () {
+      //
+      //    upload rejected - must be violating size constraint
+      //
+      this.resultTitle = 'File too large';
+      this.resultMsg = 'The document must be no bigger than 10MB. Please use a smaller file.';
+      this.resultType = 'Error';
+      this.userMessage = true;
     },
 
     showUploadResult () {
