@@ -60,7 +60,7 @@
 <script>
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { SessionStorage } from 'quasar';
+//import { SessionStorage } from 'quasar';
 //import globalData from 'src/components/GlobalData.js'
 
 export default {
@@ -105,7 +105,7 @@ export default {
     xhttp.onload = () => {
       var resultObj = JSON.parse(xhttp.response);
       //console.log(resultObj);
-      SessionStorage.set('userEmail',resultObj.email);
+      this.$userEmail = resultObj.email;
       if (resultObj.resetKey == '') {   //  Direct to normal login - no errors returned
         this.$router.push('Login');
       }

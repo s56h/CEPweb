@@ -57,8 +57,8 @@
 
 	Try
 	
-		Dim uploadedFiles
-		uploadedFiles = Request.Files
+		'Dim uploadedFiles
+		'uploadedFiles = Request.Files
 		
 		Dim oFilePost = Request.Files(0)
 		Dim intContentLength As Integer
@@ -72,8 +72,8 @@
 		strInstallerId = Request.Cookies.Item("InstallerId").Value.ToString()
 		Dim strChecklistId As String
 		strChecklistId = Request.Cookies.Item("ChecklistId").Value.ToString()
-		Dim strChecklistType As String
-		strChecklistType = Request.Cookies.Item("ChecklistType").Value.ToString()
+		Dim strInstallerType As String
+		strInstallerType = Request.Cookies.Item("ChecklistType").Value.ToString()
 		Dim strInstallerCompanyId As String
 		strInstallerCompanyId = Request.Cookies.Item("InstallerCompanyId").Value.ToString()
 		Dim strInstallerName As String
@@ -86,9 +86,6 @@
 			strExpiryDate = "'" & strExpiryDate & "'"
 		End If
 		
-		Dim strStoredFileName As String
-		Dim strDateTime As String
-		
 		Dim sqlConn As New SqlConnection
 		Dim strConnString As String
 		strConnString = ConfigurationManager.ConnectionStrings("CEPapp").ConnectionString
@@ -98,9 +95,9 @@
 		Dim sqlSelectCmd As New SqlCommand
 		sqlSelectCmd.Connection = sqlConn
 		'		Get the folder to store the file in
-		If strChecklistType = "I"				'		Installer document
+		If strInstallerType = "I"				'		Individual installer 
 			sqlSelectCmd.CommandText = "SELECT FolderPath FROM tbl_installer WHERE (ID = " & strInstallerId & ")"
-		Else
+		Else									'		Company installer 
 			sqlSelectCmd.CommandText = "SELECT FolderPath FROM tbl_installer_company WHERE (ID = " & strInstallerCompanyId & ")"
 		End If
 		Dim sqlReader As SqlDataReader
@@ -193,15 +190,15 @@
 
 		Dim sqlUpdateCmd As New SqlCommand
 		sqlUpdateCmd.Connection = sqlConn
-		If strChecklistType = "I"					'		Installer document
+		If strInstallerType = "I"					'		Installer document
 			sqlUpdateCmd.CommandText = "UPDATE tbl_installer_checklist SET ChecklistStatusID = " & strPendingStatus & ", ExpiryDate = " & strExpiryDate & ", FileFolderPath = '" & strFileFolderPath & "' WHERE (InstallerID = " & strInstallerId & " AND ChecklistID = " & strChecklistId & ")"
 		Else										'		Company document
 			sqlUpdateCmd.CommandText = "UPDATE tbl_installer_company_checklist SET ChecklistStatusID = " & strPendingStatus & ", ExpiryDate = " & strExpiryDate & ", FileFolderPath = '" & strFileFolderPath & "' WHERE (InstallerCompanyID = " & strInstallerCompanyId & " AND ChecklistID = " & strChecklistId & ")"
 		End If
 
-		Dim sqlTransaction As sqlTransaction
-		sqlTransaction = sqlConn.BeginTransaction("StoreDoc")
-		sqlUpdateCmd.Transaction = sqlTransaction
+		Dim sqlStoreTxn As sqlTransaction
+		sqlStoreTxn = sqlConn.BeginTransaction("StoreDoc")
+		sqlUpdateCmd.Transaction = sqlStoreTxn
 
 		Try
 
@@ -213,7 +210,7 @@
 				strResultTitle = "Upload Problem"
 				strResultMsg = "There was an unexpected error while storing the document. Please contact Carpet Cutters Commercial."
 				strResultType = "System Error"
-				PutLog("CEP app", "Installer", strUserEmail, strResultType, "StoreDocument", strResultMsg & " Unable to update tbl_installer_checklist or tbl_installer_company_checklist. " & strChecklistType & " " & sqlUpdateCmd.CommandText)
+				PutLog("CEP app", "Installer", strUserEmail, strResultType, "StoreDocument", strResultMsg & " Unable to update tbl_installer_checklist or tbl_installer_company_checklist. " & strInstallerType & " " & sqlUpdateCmd.CommandText)
 				SetHeaders(intResultCode, strResultTitle, strResultMsg, strResultType)
 				Throw New Exception("Custom")
 			End If
@@ -222,7 +219,7 @@
 				Dim sqlUpdateCmd2 As New SqlCommand
 				sqlUpdateCmd2.Connection = sqlConn
 				sqlUpdateCmd2.CommandText = "INSERT INTO tbl_alert (AlertTypeId, MessageBody, CreatedDateTime, RaisedBy) VALUES (" & strAlertId & ", '" & strAlertText & "', GETDATE(), '" & strUserEmail & "')"
-				sqlUpdateCmd2.Transaction = sqlTransaction
+				sqlUpdateCmd2.Transaction = sqlStoreTxn
 				intUpdateCount = sqlUpdateCmd2.ExecuteNonQuery()
 
 				If intUpdateCount = 0 Then
@@ -235,7 +232,7 @@
 					Throw New Exception("Custom")
 				End If
 			End If
-			sqlTransaction.Commit()
+			sqlStoreTxn.Commit()
 			sqlConn.Close()
 
 			intResultCode = 10
@@ -245,11 +242,10 @@
 			PutLog("CEP app", "Installer", strUserEmail, strResultType, "StoreDocument", strResultMsg & " to " & strWebFileFolderPath)
 
 		Catch ex As Exception
-			sqlTransaction.Rollback()
-			If ex.Message <> "Custom" Then
-				intResultCode = 95
+			sqlStoreTxn.Rollback()
+			If ex.Message = "Custom" Then
 				strResultTitle = "System Error"
-				strResultMsg = "There was an unexpected error while storing the document (" & intResultCode & ") "
+				strResultMsg = "There was an unexpected error while storing the document (" & intResultCode & ")"
 				strResultType = "System Error"
 				PutLog("CEP app", "Installer", strUserEmail, strResultType, "StoreDocument", strResultMsg & " " & ex.Message)
 			End If
@@ -260,7 +256,7 @@
 		If ex.Message <> "Custom" Then
 			intResultCode = 96
 			strResultTitle = "System Error"
-			strResultMsg = "There was an unexpected error while storing the document (" & intResultCode & ") "
+			strResultMsg = "There was an unexpected error while storing the document (96)"
 			strResultType = "System Error"
 			PutLog("CEP app", "Installer", strUserEmail, strResultType, "StoreDocument", strResultMsg & " " & ex.Message)
 		End If

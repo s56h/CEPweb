@@ -7,7 +7,7 @@
 
 <%
     '	Service: DeleteDocument.aspx 
-	'	Invoked by: CheckList.vue component
+	'	Invoked by: Home.vue component
     ' 
     '	Request headers: session id, installer id, checklist id 
     '	Response: result
@@ -102,7 +102,7 @@
 						If intUpdateCount = 0 Then
 							intResultCode = 90
 							strResultTitle = "Delete problem"
-							strResultMsg = "There was an error while deleting the document. Please contact Carpet Cutters Commercial."
+							strResultMsg = "There was an error while deleting the document (90). Please contact Carpet Cutters Commercial."
 							strResultType = "System Error"
 							PutLog("CEP app", "Installer", strUserEmail, strResultType, "DeleteDocument", strResultMsg & " Unable to update tbl_installer_checklist or tbl_installer_company_checklist")
 						Else
@@ -115,14 +115,14 @@
 					Else
 						intResultCode = 91
 						strResultTitle = "Delete problem"
-						strResultMsg = "There was an error while deleting the document. Please contact Carpet Cutters Commercial."
+						strResultMsg = "There was an error while deleting the document (91). Please contact Carpet Cutters Commercial."
 						strResultType = "System Error"
 						PutLog("CEP app", "Installer", strUserEmail, strResultType, "DeleteDocument", strResultMsg & " Unable to obtain the None Id from tbl_checklist_status.")
 					End If
 				Else
 					intResultCode = 92
 					strResultTitle = "Delete problem"
-					strResultMsg = "Could not delete the document file. Please contact Carpet Cutters Commercial."
+					strResultMsg = "Could not delete the document file (92). Please contact Carpet Cutters Commercial."
 					strResultType = "System Error"
 					PutLog("CEP app", "Installer", strUserEmail, strResultType, "DeleteDocument", strResultMsg & " Filename " & strWebFilePath & " does not exist")
 				End If
@@ -131,7 +131,7 @@
 			Else
 				intResultCode = 93
 				strResultTitle = "Delete Problem"
-				strResultMsg = "There was an unexpected error while deleting the document. Please contact Carpet Cutters Commercial."
+				strResultMsg = "There was an unexpected error while deleting the document (93). Please contact Carpet Cutters Commercial."
 				strResultType = "System Error"
 				PutLog("CEP app", "Installer", strUserEmail, strResultType, "DeleteDocument", strResultMsg & " Unable to get folder path from tbl_installer_checklist or tbl_installer_company_checklist")
 			End If
@@ -140,13 +140,14 @@
 		Catch ex As Exception
 			intResultCode = 94
 			strResultTitle = "System Error"
-			strResultMsg = "There was an unexpected error while deleting the document (" & intResultCode & ")"
+			strResultMsg = "There was an unexpected error while deleting the document (94). Please contact Carpet Cutters Commercial."
 			strResultType = "System Error"
 			PutLog("CEP app", "Installer", strUserEmail, strResultType, "DeleteDocument", strResultMsg & " " & ex.Message)
 
 		End Try
 	End If
 
+	PutLog("CEP app", "Installer", strUserEmail, "Debug", "DeleteDocument", "Ended - result: " & strResultType)
 	Response.ContentType = "application/json; charset=utf-8"
 	Response.Write("{""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """}")
 

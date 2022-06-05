@@ -1,6 +1,6 @@
 {
   "name": "cepweb",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Carpet Cutters Installer App",
   "productName": "CEP Web",
   "author": "XLautomation <scott@xlautomation.com.au>",
@@ -11,20 +11,23 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
+    "axios": "^0.25.0",
     "core-js": "^3.18.3",
     "es6-promise": "^4.2.8",
+    "pdf-lib": "^1.17.1",
     "quasar": "^2.0.0",
+    "signature_pad": "^4.0.2",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.13.14",
-    "@quasar/app": "^3.0.0",
+    "@quasar/app": "^3.2.9",
     "@quasar/quasar-app-extension-qpdfviewer": "^2.0.0-alpha.2",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^7.0.0",
     "eslint-webpack-plugin": "^2.4.0",
-    "workbox-webpack-plugin": "^6.0.0"
+    "workbox-webpack-plugin": "^6.4.2"
   },
   "browserslist": [
     "last 10 Chrome versions",

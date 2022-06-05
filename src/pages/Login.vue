@@ -60,7 +60,6 @@
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { SessionStorage } from 'quasar';
-//import globalData from 'src/components/GlobalData.js'
 
 export default {
   setup() {
@@ -80,7 +79,7 @@ export default {
 
   data () {
     return {
-      userEmail: SessionStorage.getItem('userEmail'),
+      userEmail: '',
       password: '',
       resultMsg: '',
       resultType: '',
@@ -90,6 +89,12 @@ export default {
       showWait: ref(false),
       waitMessage: ''
     }
+  },
+
+  mounted() {
+    this.userEmail = SessionStorage.getItem('userEmail');
+    SessionStorage.set('signatureStatus','unknown');
+    SessionStorage.set('signatureSource','menu');
   },
 
   methods: {
@@ -126,13 +131,13 @@ export default {
         console.log(resultObj);
         resultCode = parseInt(resultObj.resultCode);
         //    Show error/message results
+        this.resultType = resultObj.resultType;
         if (resultCode != 0) {
           this.resultMsg = resultObj.resultMsg;
-          this.resultType = resultObj.resultType;
           this.resultTitle = resultObj.resultTitle;
           this.userMessage = true;
           if (resultCode != 10)
-          return;
+            return;
         }
         if (resultObj.environment == 'test') {
           this.showNote ("You have logged in to the Test environment","orange",3000)
@@ -146,8 +151,9 @@ export default {
           SessionStorage.set('installerId',resultObj.installer.installerId);
           SessionStorage.set('installerCompanyId',resultObj.installer.installerCompanyId);
           SessionStorage.set('installerName',resultObj.installer.contactName);
+          SessionStorage.set('loginState',true);
 
-          this.$router.push('/app/CheckList');
+          this.$router.push('/app/home/invoicelist');
         }
       }
       xhttp.open('GET', 'Services/CheckLogin.aspx', true);
