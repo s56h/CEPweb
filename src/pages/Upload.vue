@@ -37,9 +37,11 @@
             url="Services/StoreDocument.aspx"
             class="full-width"
             style="max-width: 500px"
+            max-file-size="10240000"
             @added="fileAdded" 
             @removed="fileRemoved"
-            @finish="showUploadResult" 
+            @finish="showUploadResult"
+            @rejected="showTooLarge" 
             color="orange"
             hide-upload-btn
             text-color="grey-9"
@@ -89,7 +91,6 @@
 
 import { ref } from 'vue'
 import { useQuasar } from 'quasar';
-import { SessionStorage } from 'quasar';
 //import globalData from 'src/components/GlobalData.js'
 
 var dateToday = new Date();
@@ -98,7 +99,7 @@ const month = dateToday.toLocaleString('default', { month: '2-digit' });
 const year = dateToday.toLocaleString('default', { year: 'numeric' });
 var minDate = year + '/' + month;
 var todayDate = minDate + '/' + day;
-var dateSelection = '';
+//var dateSelection = '';
 
 export default {
   setup () {
@@ -119,7 +120,7 @@ export default {
           timeout: milliseconds
         })
 
-      }
+      },
 
     }
 
@@ -127,9 +128,9 @@ export default {
 
   data () {
     return {
-      dateNeeded: SessionStorage.getItem('hasExpiry'),
-      documentName: SessionStorage.getItem('documentName'),
-      dateSelection: dateSelection,
+      dateNeeded: this.$hasExpiry,
+      documentName: this.$documentName,
+      dateSelection: '',
       minDate,
       todayDate,
       expiryDate: ref(null),
@@ -178,14 +179,14 @@ export default {
       //
       //    File added for upload - set cookies
       //
-      document.cookie = 'UserEmail=' + SessionStorage.getItem('userEmail');
-      document.cookie = 'InstallerId=' + SessionStorage.getItem('installerId');
-      document.cookie = 'InstallerCompanyId=' + SessionStorage.getItem('installerCompanyId');
-      document.cookie = 'InstallerName=' + SessionStorage.getItem('installerName');
-      document.cookie = 'ChecklistType=' + SessionStorage.getItem('checkType');
-      document.cookie = 'ChecklistId=' + SessionStorage.getItem('checklistId');
-      document.cookie = 'CheckName=' + SessionStorage.getItem('documentName');
-      document.cookie = 'SessionKey=' + SessionStorage.getItem('sessionKey');
+      document.cookie = 'UserEmail=' + this.$userEmail;
+      document.cookie = 'InstallerId=' + this.$installerId;
+      document.cookie = 'InstallerCompanyId=' + this.$installerCompanyId;
+      document.cookie = 'InstallerName=' + this.$installerName;
+      document.cookie = 'ChecklistType=' + this.$checkType;
+      document.cookie = 'ChecklistId=' + this.$checklistId;
+      document.cookie = 'CheckName=' + this.$documentName;
+      document.cookie = 'SessionKey=' + this.$sessionKey;
       if (this.expiryDate)
         document.cookie = 'ExpiryDate=' + this.expiryDate.replace(/\//g, "-");
       else
@@ -207,7 +208,16 @@ export default {
       //    invoke upload method on q-uploader
       //
       this.$refs.qUploaderRef.upload();
+    },
 
+    showTooLarge () {
+      //
+      //    upload rejected - must be violating size constraint
+      //
+      this.resultTitle = 'File too large';
+      this.resultMsg = 'The document must be no bigger than 10MB. Please use a smaller file.';
+      this.resultType = 'Error';
+      this.userMessage = true;
     },
 
     showUploadResult () {
@@ -217,8 +227,8 @@ export default {
 
       //    Reflect changes locally
       var installerChecklist = new Array();
-      installerChecklist = SessionStorage.getItem('checkList');
-      var itemIx = SessionStorage.getItem('listRow');
+      installerChecklist = this.$checkList; // ***************** storage
+      var itemIx = this.$listRow; // ***************** storage
       //console.log(installerChecklist[itemIx]);
       installerChecklist[itemIx].cb = true;
       installerChecklist[itemIx].textLine2 = 'Pending';
@@ -240,16 +250,16 @@ export default {
       installerChecklist[itemIx].exists = true;
       installerChecklist[itemIx].documentStatus = 'Pending';
       //console.log(installerChecklist[itemIx]);
-      SessionStorage.set('checkList',installerChecklist);
+      this.$checkList = installerChecklist;
       //console.log(installerChecklist);
 
       //  check for messages - using cookie since HTTP response object is not available
-      this.resultCode = 0;
+      var resultCode = 0;
       var cookieArr = document.cookie.split(";");
       for (var i = 0; i < cookieArr.length; i++) {
         var cookiePair = cookieArr[i].split("=");
         switch (cookiePair[0].trim()) {
-          case 'ResultCode': this.resultCode = cookiePair[1]; break;
+          case 'ResultCode': resultCode = cookiePair[1]; break;
           case 'ResultTitle': this.resultTitle = cookiePair[1]; break;
           case 'ResultMsg': this.resultMsg = cookiePair[1]; break;
           case 'ResultType': this.resultType = cookiePair[1]; break;
@@ -257,15 +267,16 @@ export default {
         }
       }
 
-      if (this.resultCode != '10') {
-        if (this.resultCode == '30') {
+      if (resultCode != '10') {
+        if (resultCode == '30') {
           this.sessionTimeout = true;
         }
         this.userMessage = true;
       }
       else {
         this.showUploadNote('Your document has been saved and is pending approval', 'green', 3500);
-        window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/app/CheckList');
+        this.$router.replace('/app/CheckList');
+        //window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/app/CheckList');
       }
     }
 

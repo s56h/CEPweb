@@ -17,5 +17,7 @@
     strResetKey	= Request.QueryString("ResetKey")
     Session("Email") = strUserEmail
     Session("ResetKey") = strResetKey
-    Response.Redirect("../")  '		Authentication layout
+
+    'Response.Write("{""email"": """ & strUserEmail & """, ""resetKey"": """ & strResetKey & """}")
+    Response.Redirect("../#/ResetPW")  '		Reset password component
 %>

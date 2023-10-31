@@ -60,12 +60,13 @@
 <script>
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import { SessionStorage } from 'quasar';
+//import { SessionStorage } from 'quasar';
 //import globalData from 'src/components/GlobalData.js'
 
 export default {
   setup() {
     const $q = useQuasar();
+    
     return {
 
       showUploadNote (text, colour) {
@@ -81,17 +82,41 @@ export default {
   data () {
 
     return {
-      userEmail: SessionStorage.getItem('userEmail'),
-      resetKey: SessionStorage.getItem('resetKey'),
+      userEmail: '',
+      resetKey: '',
       password: '',
       password2: '',
       resultMsg: '',
       resultType: '',
       resultTitle: '',
-      userMessage: '',
+      userMessage: ref(false),
       isPwd: ref(true),
       isPwd2: ref(true),
     }
+  },
+
+  mounted () {
+    //
+    //    Look for password reset data stored in ASP session
+    //    - if present, continue
+    //    - otherwise, navigate to login page
+    //
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = () => {
+      var resultObj = JSON.parse(xhttp.response);
+      //console.log(resultObj);
+      this.$userEmail = resultObj.email;
+      if (resultObj.resetKey == '') {   //  Direct to normal login - no errors returned
+        this.$router.push('Login');
+      }
+      else {   //  Reset password email link has been used
+        this.resetKey = resultObj.resetKey; 
+        this.userEmail = resultObj.email;
+      }
+    }
+    xhttp.open('GET', 'Services/CheckReset.aspx', true);
+    xhttp.send();
+
   },
 
   methods: {

@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { SessionStorage } from 'quasar';
+//import { SessionStorage } from 'quasar';
 //import globalData from 'src/components/GlobalData.js'
 
 var faqList = new Array();
@@ -46,7 +46,7 @@ export default {
       this.faqList = resultObj.FAQs;
     }
     xhttp.open('POST', 'Services/GetFAQ.aspx', true);
-    xhttp.setRequestHeader('SessionKey', SessionStorage.getItem('sessionKey'));
+    xhttp.setRequestHeader('SessionKey', this.$sessionKey);
     xhttp.send();
 
   }

@@ -61,8 +61,10 @@
 			Dim sqlReader As SqlDataReader
 			sqlReader = sqlSelectCmd.ExecuteReader()
 			If sqlReader.HasRows Then
-				sqlReader.Read()
-				jsnCheckList = sqlReader(0).ToString()
+				jsnCheckList = ""
+				While sqlReader.Read()
+					jsnCheckList = jsnCheckList & sqlReader(0).ToString()
+				End While
 			Else
 				intResultCode = 91
 				strResultTitle = "Checklist problem"

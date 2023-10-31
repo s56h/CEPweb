@@ -15,20 +15,33 @@
       </q-toolbar>
     </q-header>
 
+    <q-page-container>   <!--   Page container   -->
+      <router-view />
+    </q-page-container>
+
     <q-footer>   <!--   Footer   -->
-      <div class="bg-white q-pa-xs row">
-        <span class="col-7 q-pt-sm">
+      <div class="bg-white q-pa-xs row fit justify-between items-center">
+        <div class="q-pt-sm col">
           <q-chip size="md" icon="mdi-face-outline" color="orange-9" text-color="white">
             {{installerName}}
           </q-chip>
-        </span>
-        <span class="col-5">
-          <q-img no-spinner fit="scale-down" height="50px" src="~assets/Commercial-flooring-sydney.png" />
-        </span>
+        </div>
+        <div class="col">
+        <!-- <div class="q-pt-sm col">
+        <div class="q-pt-sm col float-right" style="display: flex; justify-content: flex-end"> -->
+          <!-- image right -->
+          <div style="width: 175px; margin-left: auto; margin-right: 0px">
+            <q-img fit="scale-down" height="50px" src="~assets/Commercial-flooring-sydney.png" />
+          </div>
+        </div>
       </div>
-      <div>
-        <span v-if="testEnvironment" class="bg-yellow q-pa-sm row text-bold text-blue">Test Environment</span>
-        <span class="float-right text-caption text-orange-4">v{{appVersion}}</span>
+      <div class="fit row justify-between items-center text-orange-4">
+        <div v-if="testEnvironment" class="text-subtitle2 text-bold q-pl-sm">
+          Test Environment
+        </div>
+        <div class="float-right text-caption">
+          v{{appVersion}}
+        </div>
       </div>
     </q-footer>
 
@@ -60,41 +73,52 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Yes" color="warning"  to="/Login" />
+          <q-btn flat label="Yes" color="warning"  @click="doLogout" />   <!-- ############## clear routes ################### -->
           <q-btn flat label="No" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <q-page-container>
-      <router-view />
-    </q-page-container>
   </q-layout>
 </template>
 
 <script>
 import { defineComponent, ref } from 'vue';
 import { version } from '../../package';
-import SlideMenu from 'src/components/SlideMenu.vue';
 import { SessionStorage } from 'quasar';
+import SlideMenu from 'src/components/SlideMenu.vue';
 
 //import globalData from 'src/components/GlobalData.js'
 
 const menuList = [
   {
+    title: 'Submit Invoice',
+    icon: 'mdi-currency-usd',
+    link: '/app/home/submitinvoice'
+  },
+  {
+    title: 'Invoices',
+    icon: 'mdi-cash-multiple',
+    link: '/app/home/invoicelist'
+  },
+  {
     title: 'Checklist',
     icon: 'mdi-format-list-checks',
-    link: '/app/CheckList'
+    link: '/app/home/checklist'
+  },
+  {
+    title: 'My signature',
+    icon: 'mdi-signature-freehand',
+    link: '/app/SignPad'
   },
   {
     title: 'Contact CCC',
     icon: 'mdi-account-box-outline',
-    link: '/app/Contact'
+    link: '/app/contact'
   },
   {
     title: 'FAQs',
     icon: 'mdi-help',
-    link: '/app/FAQ'
+    link: '/app/faq'
   }
 ];
 
@@ -121,6 +145,18 @@ export default defineComponent({
         leftDrawerOpen.value = !leftDrawerOpen.value
       }
     }
+  },
+
+  
+  methods: {
+
+    doLogout () {
+      //    Save login state
+      SessionStorage.set('loginState',false);
+      this.$router.replace('/login');
+    }
+
   }
+
 })
 </script>

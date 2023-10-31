@@ -1,8 +1,9 @@
 <% @Page Language="VB" Debug="true" aspcompat="true" %>
 <% @Import Namespace="System.IO" %>
-<% @Import Namespace="System.Data.Sqlclient" %>
+<% @Import Namespace="System.Management" %>
 <% @Import Namespace="System.Net" %>
-<% @Import Namespace="System.Net.Mail" %>
+<% @Import Namespace="System.Data" %>
+<% @Import Namespace="System.Data.Sqlclient" %>
 <% @Import Namespace="System.Configuration" %>
 
 <!--#include file="PutLog.aspx"-->
@@ -63,41 +64,48 @@
 
 			If intUpdateCount = 1 Then		'	the reset key has been updated, send email
 				PutLog("CEP app", "Installer", strUserEmail, "Debug", "SendResetEmail", "Reset key updated in database")
-				Dim smtpClient As New SmtpClient
-				
-				'	****	The following applies for gmail. For another smtp provider, these settings will need to change		****
-				
-				smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network
-				smtpClient.UseDefaultCredentials = False
-				smtpClient.EnableSsl = True
-				'smtpClient.Host = "smtp.gmail.com"
-				smtpClient.Host = "smtp.office365.com"
-				smtpClient.Port = 587 ' 587 for TLS?
-				Dim strMailPW As String
-				Dim oAppSettings = ConfigurationManager.AppSettings
-				strMailPW = oAppSettings("MailPW")
-				Dim strMailUser As String
-				strMailUser = oAppSettings("MailUser")
-				smtpClient.Credentials = New NetworkCredential(strMailUser, strMailPW)
 
-				Dim eMail As New MailMessage
 				Dim strMailSubject As String
+				Dim oAppSettings = ConfigurationManager.AppSettings
 				strMailSubject = oAppSettings("ResetMailSubject")
-				eMail.Subject = strMailSubject
-				eMail.From = New MailAddress(strMailUser)
-				eMail.To.Add(strUserEmail)
-				Dim strEmailBody As String
 				Dim strHostName As String
 				strHostName = oAppSettings("HostName")
-				strEmailBody = "<p>Hello " & strInstallerName & "</p><p>Please click this reset your password:</p><p><a href='" & strHostName & "Services/ResetPassword.aspx?UserLogin=" & strUserEmail & "&ResetKey=" & strResetKey & "'>Reset Password</a></p><p>Regards, Carpet Cutters Commercial</p>"
-				eMail.Body = strEmailBody
-				eMail.IsBodyHtml = True
-				PutLog("CEP app", "Installer", strUserEmail, "Debug", "SendResetEmail", "About to send email (" & strMailSubject & ") : " &strEmailBody)
-				smtpClient.Send(eMail)
+				Dim strMailPW As String
+				strMailPW = oAppSettings("MailPW")
+				'Dim strMailSender As String
+				'strMailSender = oAppSettings("MailSender")
+				Dim strEmailProfile As String
+				strEmailProfile = oAppSettings("EmailProfile")
+
+				Dim strEmailPath As String							'	The prefix of the file store accessed by CCC staff
+				Dim strHtmlLine As String
+				Dim strEmailBody As String
+				strEmailBody = ""
+				strEmailPath = oAppSettings("ResetPath")
+				Dim oReader As StreamReader = My.Computer.FileSystem.OpenTextFileReader(strEmailPath)
+				Do While oReader.Peek() <> -1
+					strHtmlLine = oReader.ReadLine
+					strHtmlLine = strHtmlLine.Replace("~name~", strInstallerName).Replace("~host~", strHostName).Replace("~email~", strUserEmail).Replace("~key~",strResetKey)
+					strEmailBody = strEmailBody & strHtmlLine
+				Loop
+				oReader.Close()
+				PutLog("CEP app", "Installer", strUserEmail, "Debug", "SendResetEmail", "About to send mail to (" & strUserEmail & ")")
+				Dim spCommand As New SqlCommand()
+				spCommand.Connection = sqlConn
+				spCommand.CommandText = "msdb.dbo.sp_send_dbmail"
+				spCommand.CommandType = CommandType.StoredProcedure
+				spCommand.Parameters.AddWithValue("profile_name", strEmailProfile)
+				spCommand.Parameters.AddWithValue("recipients", strUserEmail)
+				' spCommand.Parameters.AddWithValue("from_address", strMailSender)
+				spCommand.Parameters.AddWithValue("subject", strMailSubject)
+				spCommand.Parameters.AddWithValue("body", strEmailBody)
+				spCommand.Parameters.AddWithValue("body_format", "HTML")
+				spCommand.ExecuteNonQuery()
+
 				PutLog("CEP app", "Installer", strUserEmail, "Debug", "SendResetEmail", "Email sent")
 
 				intResultCode = 10
-				strResultTitle = "Email send"
+				strResultTitle = "Email sent"
 				strResultMsg = "An email had been sent to allow you to enter a new password"
 				strResultType = "Information"
 				PutLog("CEP app", "Installer", strUserEmail, strResultType, "SendResetEmail", strResultMsg)
@@ -119,16 +127,18 @@
         sqlConn.Close()
 
     Catch ex As Exception
-        intResultCode = 90
+        intResultCode = 91
 		strResultTitle = "System Error"
         strResultMsg = "There was an unexpected error while sending your password reset email (" & intResultCode & ") "
         strResultType = "System Error"
 		PutLog("CEP app", "Installer", strUserEmail, strResultType, "SendResetEmail", strResultMsg & ex.Message)
+		PutLog("CEP app", "Installer", strUserEmail, strResultType, "SendResetEmail - Trace", strResultMsg & ex.StackTrace)
 
     End Try
 	
-	Response.ContentType = "application/json; charset=utf-8" 
-	Response.Write("{""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """}")
+	Response.ContentType = "application/json; charset=utf-8"
+	Response.Clear()	'	Previous code somewhare (stored procedure call?) puts spurious data in Response
+	Response.Write("{""resultCode"": """ & intResultCode.ToString() & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """}")
 	PutLog("CEP app", "Installer", strUserEmail, "Debug", "SendResetEmail", "Ended")
 
 %>

@@ -1,52 +1,62 @@
 <template>
   <q-page padding>
+<!-- ******************************** DELETE ***************************************** -->
+    <div class="q-gutter-y-md" style="max-width: 600px">
+      <q-card>
+        <div class="row">
+          <div class="col-1 text-primary">
+            <q-icon size="lg" name="mdi-chevron-left-box" /> <!-- 3em -->
+          </div>
+          <div class="col-11 text-center text-h6">
+            Checklist
+          </div>
+        </div>
+        <q-separator />
+        <q-list>          <!--  Checklist  -->
+          <q-item class="q-px-xs" v-for="item in installerChecklist" :key="item.rowId">
+            <q-item-section class="col-1" top>
+              <q-checkbox :model-value="item.cb" :color="item.cbCol" />
+            </q-item-section>
 
-    <q-banner rounded dense class="bg-orange text-white">
-      Ready-to-work Checklist
-    </q-banner>
-    <div class="q-pa-md q-gutter-md">
-      <q-list class="q-ml-none">
-        <q-item class="q-px-xs" v-for="item in installerChecklist" :key="item.rowId">
-          <q-item-section class="col-1" top>
-            <q-checkbox :model-value="item.cb" :color="item.cbCol" />
-          </q-item-section>
+            <q-item-section top class="col-2 q-py-xs">
+              <q-item-label class="q-pt-xs text-grey-9">{{ item.checkName }}</q-item-label>
+            </q-item-section>
 
-          <q-item-section top class="col-2 q-py-xs">
-            <q-item-label class="q-pt-xs text-grey-9">{{ item.checkName }}</q-item-label>
-          </q-item-section>
+            <q-item-section top class="col-5 q-py-xs">
+              <q-item-label class="q-pt-xs">
+                <div :class="item.txtCol">{{ item.textLine1 }}</div>
+                <div class="text-weight-medium">{{ item.textLine2 }}</div>
+              </q-item-label>
+            </q-item-section>
 
-          <q-item-section top class="col-5 q-py-xs">
-            <q-item-label class="q-pt-xs">
-              <div :class="item.txtCol">{{ item.textLine1 }}</div>
-              <div class="text-weight-medium">{{ item.textLine2 }}</div>
-            </q-item-label>
-          </q-item-section>
+            <q-item-section class="col-4 q-py-xs">
+              <!-- Note v-ifs below -->
+              <div class="text-grey-8"> 
+                <q-btn v-if="item.exists" class="q-gt-xs" size="12px" flat dense round icon="mdi-file-eye-outline" @click="documentLook(item.rowId)" >
+                  <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
+                    Show document
+                  </q-tooltip>
+                </q-btn>
+                <q-btn v-else class="q-gt-xs" size="12px" flat dense round />
+                <q-btn class="q-gt-xs" size="12px" flat dense round icon="mdi-upload" @click="documentUpload(item.rowId)" >
+                  <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
+                    Upload document
+                  </q-tooltip>
+                </q-btn>
+                <q-btn v-if="item.exists" class="q-gt-xs" size="12px" flat dense round icon="mdi-delete" @click="documentDelete(item.rowId)" >
+                  <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
+                    Delete document
+                  </q-tooltip>
+                </q-btn>
+                <q-btn v-else class="q-gt-xs" size="12px" flat dense round />
+              </div>
+            </q-item-section>
 
-          <q-item-section class="col-4 q-py-xs">
-            <!-- Note v-ifs below -->
-            <div class="text-grey-8"> 
-              <q-btn v-if="item.exists" class="q-gt-xs" size="12px" flat dense round icon="mdi-file-eye-outline" @click="itemLook(item.rowId)" >
-                <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
-                  Show document
-                </q-tooltip>
-              </q-btn>
-              <q-btn v-else class="q-gt-xs" size="12px" flat dense round />
-              <q-btn class="q-gt-xs" size="12px" flat dense round icon="mdi-upload" @click="itemUpload(item.rowId)" >
-                <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
-                  Upload document
-                </q-tooltip>
-              </q-btn>
-              <q-btn v-if="item.exists" class="q-gt-xs" size="12px" flat dense round icon="mdi-delete" @click="itemDelete(item.rowId)" >
-                <q-tooltip class="bg-amber text-black" :offset="[10, 10]">
-                  Delete document
-                </q-tooltip>
-              </q-btn>
-              <q-btn v-else class="q-gt-xs" size="12px" flat dense round />
-            </div>
-          </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card>
 
-        </q-item>
-      </q-list>
+    </div>
 
     <q-dialog v-model="confirmDelete" persistent>
       <q-card>
@@ -61,7 +71,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    </div>
   </q-page>
 
   <q-dialog v-model="userMessage" persistent>
@@ -92,20 +101,25 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref } from 'vue'
 import { SessionStorage } from 'quasar';
-//import globalData from 'src/components/GlobalData.js'
 
 export default {
+
+  setup () {
+    return {
+      tab: ref('invoices')
+    }
+  },
 
   data () {
     return {
       installerChecklist: new Array(),
+      installerInvoiceList: new Array(),
       userMessage: false,
-      deleteIx: 0,
-      deleteType: '',
-      confirmDelete: ref(false),
       sessionTimeout: false,
+      confirmDelete: ref(false),
+      selectedTab: this.tab,
       resultMsg: '',
       resultType: '',
       resultTitle: ''
@@ -114,10 +128,13 @@ export default {
 
   created () {
     //
-    //        refresh checklist on browser refresh
+    //        Refresh lists on browser refresh
     //
+    //    this.installerChecklist = [{rowId: 1, id: 1, cb: true, checkName: 'checkName', textLine1: 'textLine1', textLine2: 'textLine2', hasExpiry: false, expiryDate: null, documentStatus: 'Pending', cbCol: 'red', txtCol: 'blue', exists: false, type: 'type'}];
+    //    this.installerinvoiceList = [];
     const xhttp = new XMLHttpRequest();
     var resultCode = 0;
+
     xhttp.onload = () => {
       if (xhttp.status != 200) {
         this.resultMsg = 'System error (code ' + xhttp.status + ')';
@@ -145,9 +162,10 @@ export default {
       if (this.resultType != 'Error' && this.resultType != 'System Error') {   //  Login OK
         //  get checklist data and save
         this.installerChecklist = this.setCheckList(resultObj);
+        this.installerInvoiceList = this.setInvoiceList(resultObj);
       }
     }
-    xhttp.open('GET', 'Services/GetChecklist.aspx', true);
+    xhttp.open('GET', 'Services/GetInstallerLists.aspx', true);
     xhttp.setRequestHeader('UserEmail', SessionStorage.getItem('userEmail'));
     xhttp.setRequestHeader('InstallerId', SessionStorage.getItem('installerId'));
     xhttp.setRequestHeader('InstallerCompanyId', SessionStorage.getItem('installerCompanyId'));
@@ -156,15 +174,15 @@ export default {
   },
 
   methods: {
-    itemLook(rowId) {
+    documentLook(rowId) {
       SessionStorage.set('checklistId',this.installerChecklist[rowId].id);
       SessionStorage.set('documentName',this.installerChecklist[rowId].checkName);
       SessionStorage.set('documentStatus',this.installerChecklist[rowId].documentStatus);
       SessionStorage.set('checkType',this.installerChecklist[rowId].type);
-      this.$router.push('/app/ShowImage');
+      this.$router.push('/app/ShowDocument');
     },
 
-    itemUpload(rowId) {
+    documentUpload(rowId) {
       SessionStorage.set('listRow',rowId);
       SessionStorage.set('checklistId',this.installerChecklist[rowId].id);
       SessionStorage.set('documentName',this.installerChecklist[rowId].checkName);
@@ -173,7 +191,7 @@ export default {
       this.$router.push('/app/Upload');
     },
 
-    itemDelete(rowId) {
+    documentDelete(rowId) {
       this.deleteIx = rowId;
       this.confirmDelete = true;
     },
@@ -237,9 +255,23 @@ export default {
 
     },
 
+    invoiceLook(rowId) {
+      SessionStorage.set('invoiceId',this.installerInvoiceList[rowId].id);
+      SessionStorage.set('invoiceLabel',this.installerInvoiceList[rowId].invoiceText);
+      SessionStorage.set('invoiceStatus',this.installerInvoiceList[rowId].invoiceStatus);
+      this.$router.push('/app/ShowInvoice');
+    },
+
+    invoiceResubmit(rowId) {
+      SessionStorage.set('invoiceId',this.installerInvoiceList[rowId].id);
+      SessionStorage.set('invoiceLabel',this.installerInvoiceList[rowId].invoiceText);
+      SessionStorage.set('invoiceStatus',this.installerInvoiceList[rowId].invoiceStatus);
+      this.$router.push('/app/ShowInvoice');
+    },
+
     setCheckList (resultObj) {
       //
-      //      Populate the checklist object from the GetChecklist service response
+      //      Populate the checklist object from the GetInstallerlists service response
       //
       var checkId;
       var checkName;
@@ -357,7 +389,61 @@ export default {
       SessionStorage.set('checkList',checkList);
       //console.log(checkList);
       return checkList;
+    },
 
+    setInvoiceList (resultObj) {
+      //
+      //      Populate the checklist object from the GetInstallerlists service response
+      //
+      var invoiceId;
+      var invoiceFrom;
+      var invoiceTo;
+      var invoiceStatus;
+      var cbTick;
+      var cbColour;
+      var textColour;
+      var invoiceText;
+      var fromDate;
+      var fromDateDMY;
+      var toDate;
+      var toDateDMY;
+      var submitNeeded;
+      var invoiceList = [];
+      for (let i = 0; i < resultObj.invoiceList.length; i++) {
+        invoiceId = resultObj.invoiceList[i].invoiceID;
+        invoiceFrom = resultObj.invoiceList[i].invoiceFrom;
+        invoiceTo = resultObj.invoiceList[i].invoiceTo;
+        invoiceStatus = resultObj.invoiceList[i].status;
+        fromDate = new Date(invoiceFrom);
+        var day = fromDate.toLocaleString('default', { day: '2-digit' });
+        var month = fromDate.toLocaleString('default', { month: 'short' });
+        var year = fromDate.toLocaleString('default', { year: '2-digit' });
+        fromDateDMY = day + '-' + month + '-' + year;
+        toDate = new Date(invoiceTo);
+        day = toDate.toLocaleString('default', { day: '2-digit' });
+        month = toDate.toLocaleString('default', { month: 'short' });
+        year = toDate.toLocaleString('default', { year: '2-digit' });
+        toDateDMY = day + '-' + month + '-' + year;
+        invoiceText = 'Invoice ' + fromDateDMY + ' to ' + toDateDMY + ' is ' + invoiceStatus;
+        if (invoiceStatus == 'Paid' || invoiceStatus == 'Approved')
+        {
+          cbTick = true;
+          cbColour = 'green';
+          textColour = 'text-grey-9';
+          submitNeeded = false;
+        }
+        else {
+          cbTick = null;
+          cbColour = 'red';
+          textColour = 'text-red';
+          submitNeeded = true;
+        }
+        var invoiceItem = {rowId: i, id: invoiceId, cb: cbTick, cbCol: cbColour, invoiceTo: invoiceTo, invoiceFrom: invoiceFrom, invoiceStatus: invoiceStatus, invoiceText: invoiceText, txtCol: textColour, resubmit: submitNeeded}
+        invoiceList.push(invoiceItem);
+      }
+      SessionStorage.set('invoiceList',invoiceList);
+      console.log(invoiceList);
+      return invoiceList;
     }
 
   }

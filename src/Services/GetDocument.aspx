@@ -9,7 +9,7 @@
     '	Service: GetDocument.aspx 
 	'	Invoked by: Image.vue component
     ' 
-    '	Request headers: session id, installer id, checklist id 
+    '	Request headers: session id, installer id, checklist (document) id 
     '	Response: result Json 
 	'			  document filename
     '	Result codes: 
@@ -34,7 +34,7 @@
 
 	Dim strInstallerId As String
 	Dim strInstallerCompanyId As String
-	Dim strChecklistId As String
+	Dim strDocumentId As String
 	Dim strCheckType As String
     Dim strClientSession As String = Request.Headers("SessionKey")
     If strClientSession <> Session("SessionKey") Then
@@ -46,7 +46,7 @@
 		Try
 			strInstallerId = Request.Headers("InstallerId")
 			strInstallerCompanyId = Request.Headers("InstallerCompanyId")
-			strChecklistId = Request.Headers("ChecklistId")
+			strDocumentId = Request.Headers("DocumentId")
 			strCheckType = Request.Headers("CheckType")
 
 			Dim sqlConn As New SqlConnection
@@ -58,9 +58,9 @@
 			Dim sqlSelectCmd As New SqlCommand
 			sqlSelectCmd.Connection = sqlConn
 			If strCheckType = "I" Then
-				sqlSelectCmd.CommandText = "SELECT FileFolderPath FROM tbl_installer_checklist WHERE (InstallerId = " & strInstallerId & " AND ChecklistId = " & strChecklistId & ")"
+				sqlSelectCmd.CommandText = "SELECT FileFolderPath FROM tbl_installer_checklist WHERE (InstallerId = " & strInstallerId & " AND ChecklistId = " & strDocumentId & ")"
 			Else
-				sqlSelectCmd.CommandText = "SELECT FileFolderPath FROM tbl_installer_company_checklist WHERE (InstallerCompanyId = " & strInstallerCompanyId & " AND ChecklistId = " & strChecklistId & ")"
+				sqlSelectCmd.CommandText = "SELECT FileFolderPath FROM tbl_installer_company_checklist WHERE (InstallerCompanyId = " & strInstallerCompanyId & " AND ChecklistId = " & strDocumentId & ")"
 			End If
 			Dim sqlReader As SqlDataReader
 			sqlReader = sqlSelectCmd.ExecuteReader()
@@ -92,14 +92,14 @@
 			strResultTitle = "System Error"
 			strResultMsg = "There was an unexpected error while accessing the document (" & intResultCode & ") "
 			strResultType = "System Error"
-			PutLog("CEP app", "Installer", strUserEmail, strResultType, "GetDocument", strResultMsg & " " & ex.Message & " (" & strInstallerCompanyId & "," & strInstallerId & "," & strChecklistId & ")")
+			PutLog("CEP app", "Installer", strUserEmail, strResultType, "GetDocument", strResultMsg & " " & ex.Message & " (" & strInstallerCompanyId & "," & strInstallerId & "," & strDocumentId & ")")
 
 		End Try
 	End If
 	
 
 	Response.ContentType = "application/json; charset=utf-8"
-	Response.Write("{""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """, ""imageSource"": """ & strWebFilePath & """}")
+	Response.Write("{""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """, ""documentSource"": """ & strWebFilePath & """}")
 	'Response.Write("{""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """, ""imageSource"": """ & strStoredFileName & """}")
 	PutLog("CEP app", "Installer", strUserEmail, "Debug", "GetDocument", "Ended - result: " & strResultType)
 

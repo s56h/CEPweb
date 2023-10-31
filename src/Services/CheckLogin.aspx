@@ -172,8 +172,7 @@
 
     End Try
 	
-    Response.ContentType="application/json; charset=utf-8" 
-	'Response.Write("{""environment"": """ & strEnvironment & """, ""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultText"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """, ""sessionKey"": """ & strSessionKey & """, ""installer"": " & jsnInstaller & ", ""checkList"": " & jsnCheckList & "}")
+    Response.ContentType = "application/json; charset=utf-8" 
 	Response.Write("{""environment"": """ & strEnvironment & """, ""resultCode"": """ & intResultCode & """, ""resultMsg"": """ & strResultMsg & """, ""resultType"": """ & strResultType & """, ""resultTitle"": """ & strResultTitle & """, ""sessionKey"": """ & strSessionKey & """, ""installer"": " & jsnInstaller & "}")
 	PutLog("CEP app", "Installer", strUserEmail, "Debug", "CheckLogin", "Ended - result: " & strResultType)
 
